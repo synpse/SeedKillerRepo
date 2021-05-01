@@ -23,7 +23,8 @@ var close = [1376, 150];
 
 // Colors
 var colorDone = 'b8ffae';
-var colorResource = 'c4a67b';
+var colorResource1 = 'c4a67b';
+var colorResource2 = 'c3a57b';
 
 // Others
 var heading = 1; // 1 - Left, 2 - Top, 3 - Right, 4 - Bottom
@@ -52,112 +53,25 @@ function main() {
 
 function think() {
     while (true) {
-        sleep(150);
-
-        //move(close);
-        robot.keyTap('escape');
-
         if (checkInteracted()) break;
-        if (heading == 1) {
-            if (isPositionNew(left)) {
-                move(left);
-                heading = 1;
-            }
-            else if (isPositionNew(top)) {
-                move(top);
-                heading = 2;
-            }
-            else if (isPositionNew(right)) {
-                move(right);
-                heading = 3;
-            }
-            else if (isPositionNew(bottom)) {
-                move(bottom);
-                heading = 4;
-            }
-            else {
-                if (terminateOnFinish) {
-                    console.log("No more valid moves. Terminating...")
-                    break;
-                }
-            }
+        if (isPositionNew(left)) {
+            move(left);
         }
-        else if (heading == 2) {
-            if (isPositionNew(top)) {
-                move(top);
-                heading = 2;
-            }
-            else if (isPositionNew(right)) {
-                move(right);
-                heading = 3;
-            }
-            else if (isPositionNew(bottom)) {
-                move(bottom);
-                heading = 4;
-            }
-            else if (isPositionNew(left)) {
-                move(left);
-                heading = 1;
-            }
-            else {
-                if (terminateOnFinish) {
-                    console.log("No more valid moves. Terminating...")
-                    break;
-                }
-            }
+        else if (isPositionNew(top)) {
+            move(top);
         }
-        else if (heading == 3) {
-            if (isPositionNew(right)) {
-                move(right);
-                heading = 3;
+        else {
+            if (terminateOnFinish) {
+                console.log("No more valid moves. Terminating...")
+                break;
             }
-            else if (isPositionNew(bottom)) {
-                move(bottom);
-                heading = 4;
-            }
-            else if (isPositionNew(left)) {
-                move(left);
-                heading = 1;
-            }
-            else if (isPositionNew(top)) {
-                move(top);
-                heading = 2;
-            }
-            else {
-                if (terminateOnFinish) {
-                    console.log("No more valid moves. Terminating...")
-                    break;
-                }
-            }
-        }
-        else if (heading == 4) {
-            if (isPositionNew(bottom)) {
-                move(bottom);
-                heading = 4;
-            }
-            else if (isPositionNew(left)) {
-                move(left);
-                heading = 1;
-            }
-            else if (isPositionNew(top)) {
-                move(top);
-                heading = 2;
-            }
-            else if (isPositionNew(right)) {
-                move(right);
-                heading = 3;
-            }
-            else {
-                if (terminateOnFinish) {
-                    console.log("No more valid moves. Terminating...")
-                    break;
-                }
-            }
-        }
 
-        sleep(1550);
+            move(left);
+        }
 
         if (isResourceful) {
+            sleep(1600);
+
             if (checkInteracted()) break;
 
             if (isResourceCard(leftCard2)) {
@@ -180,9 +94,17 @@ function think() {
             }
         }
         else {
+            sleep(1200);
+
             if (checkInteracted()) break;
+
             move(middleCardNorm);
         }
+
+        sleep(50);
+
+        //move(close);
+        robot.keyTap('escape');
     }
 }
 
@@ -202,6 +124,37 @@ function move(position) {
     lastMousePos = robot.getMousePos();
 }
 
+function moveRandom() {
+    var direction = getRandomInt(1, 4);
+    var position;
+    switch (direction) {
+        case (1): 
+            position = left;
+            break;
+
+        case(2):
+            position = top;
+            break;
+
+        case(3):
+            position = right;
+            break;
+
+        case(4):
+            position = bottom;
+            break;
+    }
+    robot.moveMouse(position[0], position[1]);
+    robot.mouseClick();
+    lastMousePos = robot.getMousePos();
+}
+
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 function isPositionNew(position) {
     if (getColor(position[0], position[1]) != colorDone) {
         return true;
@@ -210,7 +163,8 @@ function isPositionNew(position) {
 }
 
 function isResourceCard(position) {
-    if (getColor(position[0], position[1]) == colorResource) {
+    if (getColor(position[0], position[1]) == colorResource1 ||
+        getColor(position[0], position[1]) == colorResource2) {
         return true;
     }
     return false;
