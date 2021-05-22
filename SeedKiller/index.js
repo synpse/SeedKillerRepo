@@ -2,8 +2,12 @@
 const robot = require('robotjs');
 var CONFIG = require('./config.json');
 
+var start = process.hrtime();
+
 // Navigation Positions
 var left = [796, 559];
+var left2 = [614, 557];
+var left3 = [431, 559];
 var top = [994, 371];
 var right = [1163, 557];
 var bottom = [979, 746];
@@ -20,6 +24,22 @@ var rightCard2 = [1035, 929];
 
 // Navigation Other
 var close = [1376, 150];
+var refresh = [124, 50];
+var login = [1174, 537];
+var char = [981, 553];
+var searchBar = [1267, 788];
+var neutralBar = [986, 790];
+
+var inv0 = [616, 886];
+var inv1 = [696, 885];
+var inv2 = [781, 886];
+var inv3 = [862, 887];
+var inv4 = [943, 885];
+var inv5 = [1028, 886];
+var inv6 = [1107, 884];
+var inv7 = [1190, 887];
+var inv8 = [1273, 886];
+var inv9 = [1353, 886];
 
 // Colors
 var colorDone = 'b8ffae';
@@ -28,9 +48,18 @@ var colorResource2 = 'c3a57b';
 
 // Others
 var heading = 1; // 1 - Left, 2 - Top, 3 - Right, 4 - Bottom
+var interv;
 var lastMousePos;
 var isResourceful = CONFIG.isResourceful;
 var terminateOnFinish = CONFIG.terminateOnFinish;
+var leftCount = 0;
+
+function elapsedTime(){
+    var precision = 3; // 3 decimal places
+    var elapsed = process.hrtime(start)[1] / 1000000; // divide by a million to get nano to milli
+    var seconds = process.hrtime(start)[0];
+    return seconds;
+}
 
 function main() {
     console.log("Starting...");
@@ -41,70 +70,143 @@ function main() {
     console.log("1...");
     sleep(1000);
     console.log("Calibrating...");
-    robot.moveMouse(0, 0);
+    //robot.moveMouse(0, 0);
     lastMousePos = robot.getMousePos();
-    console.log("x: " + lastMousePos.x);
-    console.log("y: " + lastMousePos.y);
 
     //testingGetValues();
     //testingGetColorAtPos(leftCard2);
-    think();
+    interv = setInterval(think, 5);
+}
+
+function reload() {
+    move(refresh);
+    sleep(3000);
+    move(login);
 }
 
 function think() {
-    while (true) {
-        if (checkInteracted()) break;
-        if (isPositionNew(left)) {
-            move(left);
-        }
-        else if (isPositionNew(top)) {
-            move(top);
-        }
-        else {
-            if (terminateOnFinish) {
-                console.log("No more valid moves. Terminating...")
-                break;
-            }
+    if (checkInteracted()) clearInterval(interv);
+    if (elapsedTime() >= 180) {
+        reload();
+        start = process.hrtime(); // reset the timer
+    }
 
-            move(left);
-        }
+    if (leftCount == 28) {
+        move(top);
+        leftCount = 0;
+    }
 
-        if (isResourceful) {
-            sleep(1600);
-
-            if (checkInteracted()) break;
-
-            if (isResourceCard(leftCard2)) {
-                move(leftCard2);
-            }
-            else if (isResourceCard(rightCard2)) {
-                move(rightCard2);
-            }
-            else if (isResourceCard(midCard)) {
-                move(midCard);
-            }
-            else if (isResourceCard(leftCard)) {
-                move(leftCard);
-            }
-            else if (isResourceCard(rightCard)) {
-                move(rightCard);
-            }
-            else {
-                move(middleCardNorm);
-            }
+    if (checkInteracted()) clearInterval(interv);
+    if (isPositionNew(left) || isPositionNew(left2) || isPositionNew(left3)) {
+        if (checkInteracted()) clearInterval(interv);
+        move(left);
+        leftCount++;
+    }
+    else if (isPositionNew(top)) {
+        if (checkInteracted()) clearInterval(interv);
+        move(top);
+        leftCount = 0;
+    }
+    else if (!isPositionNew(left) && !isPositionNew(left2) && !isPositionNew(left3) && !isPositionNew(top) && !isPositionNew(bottom) && !isPositionNew(right)) {
+        if (checkInteracted()) clearInterval(interv);
+        if (terminateOnFinish) {
+            console.log("No more valid moves. Terminating...")
+            clearInterval(interv);
         }
         else {
-            sleep(1200);
+            changeSeed();
+        }
+        if (checkInteracted()) clearInterval(interv);
+    }
 
-            if (checkInteracted()) break;
+    if (isResourceful) {
+        sleep(1600);
 
+        if (checkInteracted()) clearInterval(interv);
+
+        if (isResourceCard(leftCard2)) {
+            move(leftCard2);
+        }
+        else if (isResourceCard(rightCard2)) {
+            move(rightCard2);
+        }
+        else if (isResourceCard(midCard)) {
+            move(midCard);
+        }
+        else if (isResourceCard(leftCard)) {
+            move(leftCard);
+        }
+        else if (isResourceCard(rightCard)) {
+            move(rightCard);
+        }
+        else {
             move(middleCardNorm);
         }
+    }
+    else {
+        sleep(1600);
 
-        sleep(50);
+        move(middleCardNorm);
+    }
 
-        //move(close);
-        robot.keyTap('escape');
+    if (checkInteracted()) clearInterval(interv);
+
+    sleep(5);
+
+    robot.keyTap('escape');
+
+    if (checkInteracted()) clearInterval(interv);
+}
+
+function changeSeed() {
+    move(char);
+    sleep(1000);
+    move(searchBar);
+    writeWord('seed');
+    var chosenSeed = getRandomInt(0, 9);
+    sleep(5);
+    move(neutralBar);
+    sleep(5);
+
+    if (chosenSeed == 0) {
+        move(inv0);
+    }
+    else if (chosenSeed == 1) {
+        move(inv1);
+    }
+    else if (chosenSeed == 2) {
+        move(inv2);
+    }
+    else if (chosenSeed == 3) {
+        move(inv3);
+    }
+    else if (chosenSeed == 4) {
+        move(inv4);
+    }
+    else if (chosenSeed == 5) {
+        move(inv5);
+    }
+    else if (chosenSeed == 6) {
+        move(inv6);
+    }
+    else if (chosenSeed == 7) {
+        move(inv7);
+    }
+    else if (chosenSeed == 8) {
+        move(inv8);
+    }
+    else if (chosenSeed == 9) {
+        move(inv9);
+    }
+
+    sleep(500);
+    robot.keyTap('escape');
+}
+
+function writeWord(word) {
+    for (var i = 0; i < word.length; i++) {
+        robot.keyTap(word.charAt(i));
+        sleep(1);
     }
 }
 
@@ -196,13 +298,6 @@ function testingGetColorAtPos(position) {
 }
 
 function testingGetValues() {
-    console.log("3...");
-    sleep(1000);
-    console.log("2...");
-    sleep(1000);
-    console.log("1...");
-    sleep(1000);
-
     console.log("Color captured!");
     printPosColor();
 }
